@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>組合查詢結果</title>
     <style>
         body { 
@@ -10,21 +10,22 @@
             background-color: #0d1117; 
             color: #c9d1d9; 
             margin: 0; 
-            padding: 20px; 
+            padding: 15px; 
             line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
         }
-        .container { max-width: 800px; margin: 20px auto; }
+        .container { max-width: 800px; margin: 0 auto; }
         
-        h1 { text-align: center; color: #58a6ff; margin-bottom: 30px; }
+        h1 { text-align: center; color: #58a6ff; margin: 10px 0 20px; font-size: 24px; }
 
         /* 頂部篩選資訊 */
         .search-summary {
             background: #161b22;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             border: 1px solid #30363d;
-            margin-bottom: 25px;
-            font-size: 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
         }
         .search-summary span { color: #58a6ff; font-weight: bold; }
 
@@ -33,8 +34,8 @@
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
             position: relative;
             transition: 0.2s;
         }
@@ -44,65 +45,116 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            flex-wrap: wrap;
             gap: 10px;
         }
 
-        .acc-info h2 { margin: 0; font-size: 18px; color: #ffffff; font-family: monospace; }
-        .match-count { font-size: 12px; color: #3fb950; margin-top: 4px; font-weight: bold; }
+        .acc-info h2 { 
+            margin: 0; 
+            font-size: 16px; 
+            color: #ffffff; 
+            font-family: monospace; 
+            word-break: break-all; 
+        }
+        .match-badge {
+            display: inline-block;
+            background: #238636;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 5px;
+        }
 
         /* 價格與按鈕區 */
-        .action-zone { text-align: right; min-width: 120px; }
-        .price { font-size: 24px; color: #f2994a; font-weight: bold; display: block; }
+        .action-zone { text-align: right; }
+        .price { font-size: 20px; color: #f2994a; font-weight: bold; display: block; }
         
-        /* 複製按鈕 */
         .copy-btn {
             background: #21262d;
             color: #c9d1d9;
             border: 1px solid #30363d;
-            padding: 5px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 12px;
             cursor: pointer;
-            margin-top: 8px;
-            transition: 0.2s;
+            margin-top: 5px;
         }
-        .copy-btn:hover { background: #30363d; color: #ffffff; }
 
-        /* 角色標籤 */
-        .role-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 15px 0; }
+        /* 縮小版角色圖卡樣式 */
+        .mini-role-list {
+            display: flex;
+            flex-wrap: wrap; /* 重要：手機版自動換行 */
+            gap: 6px;
+            margin: 12px 0;
+        }
+        .mini-card {
+            width: 50px; /* 手機版再縮小一點點 */
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+            text-align: center;
+        }
+        .mini-card.hit {
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+        }
+        .mini-card img {
+            width: 100%;
+            height: 68px;
+            object-fit: cover;
+            display: block;
+        }
+        .mini-name {
+            font-size: 9px;
+            padding: 2px 0;
+            background: #161b22;
+            color: #8b949e;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .mini-card.hit .mini-name { color: #38bdf8; }
+
+        /* 文字標籤 */
+        .role-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 15px; }
         .tag { 
-            padding: 3px 10px; 
+            padding: 1px 6px; 
             background: #0d1117; 
             border: 1px solid #30363d; 
             border-radius: 4px; 
-            font-size: 13px; 
+            font-size: 11px; 
             color: #8b949e; 
         }
-        /* 命中的角色顏色：青藍色 */
-        .tag.hit { 
-            background: rgba(56, 189, 248, 0.15); 
-            border-color: #38bdf8; 
-            color: #38bdf8; 
-            font-weight: bold;
-        }
+        .tag.hit { border-color: #38bdf8; color: #38bdf8; }
 
-        /* 前往賣場按鈕 */
         .btn-link {
             display: block;
             background: #238636;
             color: white;
             text-align: center;
             text-decoration: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            transition: 0.2s;
+            font-size: 14px;
         }
-        .btn-link:hover { background: #2ea043; }
 
-        .no-result { text-align: center; padding: 60px 20px; color: #8b949e; }
-        .back-link { text-align: center; margin-top: 30px; }
+        /* 手機版 RWD 優化 */
+        @media (max-width: 600px) {
+            .card-header {
+                flex-direction: row; /* 保持橫向但調整比例 */
+            }
+            .acc-info { flex: 1; }
+            .action-zone { min-width: 80px; }
+            .price { font-size: 18px; }
+            .copy-btn { width: 100%; padding: 8px 0; }
+            
+            .mini-card { width: calc(25% - 6px); } /* 四隻一排 */
+            .mini-card img { height: 60px; }
+        }
+
+        .no-result { text-align: center; padding: 40px 20px; color: #8b949e; }
+        .back-link { text-align: center; margin: 20px 0 40px; }
         .back-link a { color: #58a6ff; text-decoration: none; font-size: 14px; }
     </style>
 </head>
@@ -110,77 +162,99 @@
 
 <div class="container">
     <h1>查詢結果</h1>
-
-    <div class="search-summary" id="search-summary">
-        正在分析您的需求...
-    </div>
-
-    <div id="results-list">
-        </div>
-
-    <div class="back-link">
-        <a href="index.html">← 返回重新選擇角色</a>
-    </div>
+    <div class="search-summary" id="search-summary">正在分析...</div>
+    <div id="results-list"></div>
+    <div class="back-link"><a href="index.html">← 返回重新選擇</a></div>
 </div>
 
 <script src="data.js"></script>
 
 <script>
-    // 1. 取得網址參數中的標籤
     const urlParams = new URLSearchParams(window.location.search);
     const selectedTags = urlParams.get('tags') ? urlParams.get('tags').split(',') : [];
-    
     const listElement = document.getElementById('results-list');
     const summaryElement = document.getElementById('search-summary');
 
-    // 2. 角色名稱轉換 (防止 data.js 沒設定時出錯)
     function getRoleName(code) {
         return (typeof roleMap !== 'undefined' && roleMap[code]) ? roleMap[code] : code;
     }
 
+    function getImagePath(code) {
+        const prefix = code.substring(0, 2).toUpperCase();
+        const name = getRoleName(code);
+        const folderMap = { "ST": "smallteam",
+
+            "NK": "nkingseat",
+
+            "CR": "cursereligion",
+
+            "HE": "hellexplode",
+
+            "SM": "secretmethod",
+
+            "SA": "stararrow",
+
+            "NN": "noname",
+
+            "CH": "chaos",
+
+            "HJ": "highjudge" };
+        let folder = folderMap[prefix] || "st";
+        return `image/${folder}/${name}.png`;
+    }
+
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const oldText = btn.innerText;
+            btn.innerText = "已複製";
+            setTimeout(() => btn.innerText = oldText, 1500);
+        });
+    }
+
     if (selectedTags.length === 0) {
-        summaryElement.innerHTML = "尚未選取任何角色。";
-        listElement.innerHTML = '<div class="no-result">請先返回首頁選擇您想要的角色。</div>';
+        summaryElement.innerHTML = "尚未選取角色。";
+        listElement.innerHTML = '<div class="no-result">請先返回首頁選擇。</div>';
     } else {
-        // 更新頂部資訊
         summaryElement.innerHTML = `已選角色：<span>${selectedTags.map(t => getRoleName(t)).join(', ')}</span>`;
 
-        // 3. 過濾資料：帳號 ID 必須包含所有選中的標籤 (AND 邏輯)
-        let filtered = accountDatabase.filter(acc => {
-            return selectedTags.every(tag => acc.id.includes(tag));
+        let results = accountDatabase.map(acc => {
+            const hitCount = selectedTags.filter(tag => acc.id.includes(tag)).length;
+            return { ...acc, hitCount };
         });
 
-        // 4. 排序：如果還有其他角色命中，命中數多的排前面 (這裡是用來處理未來可能的擴充)
-        filtered.sort((a, b) => b.roles.length - a.roles.length);
+        let filtered = results.filter(acc => acc.hitCount > 0);
+        filtered.sort((a, b) => b.hitCount - a.hitCount);
 
-        // 5. 渲染顯示
         if (filtered.length === 0) {
-            listElement.innerHTML = '<div class="no-result">找不到包含此組合的帳號，請嘗試減少選取角色。</div>';
+            listElement.innerHTML = '<div class="no-result">找不到符合任何一個角色的帳號。</div>';
         } else {
             listElement.innerHTML = ''; 
             filtered.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = 'result-card';
                 
-                // 產生角色標籤 HTML
-                const tagsHTML = acc.roles.map(rCode => {
+                const miniCardsHTML = acc.roles.map(rCode => {
                     const isHit = selectedTags.includes(rCode) ? 'hit' : '';
-                    return `<span class="tag ${isHit}">${getRoleName(rCode)}</span>`;
+                    return `
+                        <div class="mini-card ${isHit}">
+                            <img src="${getImagePath(rCode)}" onerror="this.src='image/placeholder.png'">
+                            <div class="mini-name">${getRoleName(rCode)}</div>
+                        </div>
+                    `;
                 }).join('');
 
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="acc-info">
                             <h2>ID: ${acc.id}</h2>
+                            <div class="match-badge">命中 ${acc.hitCount} 位角色</div>
                         </div>
                         <div class="action-zone">
                             <span class="price">$${acc.price}</span>
                             <button class="copy-btn" onclick="copyText('${acc.id}', this)">複製 ID</button>
                         </div>
                     </div>
-                    
-                    <div class="role-tags">${tagsHTML}</div>
-                    
+                    <div class="mini-role-list">${miniCardsHTML}</div>
                     <a href="${acc.link}" target="_blank" class="btn-link">前往賣場</a>
                 `;
                 listElement.appendChild(card);
@@ -188,50 +262,30 @@
         }
     }
 
-    // 監聽鍵盤按鍵事件
-document.addEventListener('keydown', function(e) {
-    // 判斷按下的是 \ 鍵 (Backslash)
-    if (e.key === '\\') {
-        
-        // 1. 從網址取得選中的角色代碼 (例如 ?tags=ST12,ST20)
-        const urlParams = new URLSearchParams(window.location.search);
-        const tagsParam = urlParams.get('tags'); 
-        
-        if (!tagsParam) {
-            console.log("未選取角色，取消生成。");
-            return;
+    // 開發者工具
+    document.addEventListener('keydown', function(e) {
+        if (e.key === '\\') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tagsParam = urlParams.get('tags'); 
+            if (!tagsParam) return;
+            const tagsArray = tagsParam.split(',');
+            const generatedID = tagsArray.join('');
+            const finalCode = `{ 
+    id: "${generatedID}", 
+    name: "",
+    roles: ${JSON.stringify(tagsArray)},
+    price: "", 
+    link: "https://google.com" 
+},\n`;
+            navigator.clipboard.writeText(finalCode).then(() => {
+                const toast = document.createElement('div');
+                toast.innerText = "已複製物件";
+                toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#238636; color:white; padding:10px 20px; border-radius:5px; z-index:9999; font-size:12px;";
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1500);
+            });
         }
-
-        const tagsArray = tagsParam.split(','); // 轉成陣列 ["ST12", "ST20"]
-        const generatedID = tagsArray.join(''); // 拼湊成 ID 字串 "ST12ST20"
-
-        // 2. 建立符合你要求的物件格式 (使用模板字串)
-        // JSON.stringify(tagsArray) 會自動幫你加上 ["", ""] 格式
-        const finalCode = `{ 
-        id: "${generatedID}", 
-        name: "",
-        roles: ${JSON.stringify(tagsArray)},
-        price: "", 
-        link: "https://google.com" 
-    },\n    `;
-
-        // 3. 執行複製到剪貼簿
-        navigator.clipboard.writeText(finalCode).then(() => {
-            // 在控制台或用一個小提示告知已成功
-            console.log("帳號物件已複製到剪貼簿！");
-            
-            // 選擇性：如果你想要視覺反饋，可以用 alert，或是在網頁角落顯示一個暫時的小文字
-            const toast = document.createElement('div');
-            toast.innerText = "已複製帳號物件格式！";
-            toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#238636; color:white; padding:10px 20px; border-radius:5px; z-index:9999;";
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.remove(), 2000);
-        }).catch(err => {
-            alert("複製失敗，請檢查瀏覽器權限");
-        });
-    }
-});
+    });
 </script>
 
 </body>
