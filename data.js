@@ -1,7 +1,7 @@
 // 帳號清單 (之後要增刪帳號改這裡就好)
 const accountDatabase = [
     { 
-        id: "ST01ST04ST05NK01", 
+        id: "a123", 
         name:"",
         roles: ["ST01", "ST04", "ST05", "NK01"],
         price: "", 
@@ -21,7 +21,6 @@ const accountDatabase = [
         price: "", 
         link: "https://google.com" 
     },
-    
 ];
 
 const roleMap = {
