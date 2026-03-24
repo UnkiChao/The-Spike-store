@@ -1,15 +1,8 @@
 // 帳號清單 (之後要增刪帳號改這裡就好)
 const accountDatabase = [
     { 
-        id: "a123", 
-        name:"",
-        roles: ["ST01", "ST04", "ST05", "NK01"],
-        price: "", 
-        link: "https://google.com" 
-    },
-    { 
         id: "NK01K10ST17", 
-        name:"",
+        name:"a0111",
         roles: ["NK01", "NK10", "ST17"], 
         price: "", 
         link: "https://google.com" 
