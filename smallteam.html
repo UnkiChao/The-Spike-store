@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>守望者小隊 - 組合帳號查詢</title>
+    <style>
+        /* === 樣式修改開始 (統一 UI 風格) === */
+        
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            /* 深色背景 */
+            background-color: #121212; 
+            color: #e0e0e0;
+            margin: 0; 
+            padding: 20px; 
+            /* 底部留白，防止被 Footer 擋住 */
+            padding-bottom: 120px; 
+        }
+        
+        .container { max-width: 1200px; margin: auto; }
+        
+        h1 { 
+            text-align: center; 
+            color: #ffffff; 
+            margin-bottom: 40px; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .grid {
+            display: grid;
+            /* 統一卡片寬度 */
+            grid-template-columns: repeat(auto-fill, 172px);
+            gap: 15px; /* 統一間距 */
+            justify-content: center;
+        }
+
+        .card {
+            /* 卡片深色背景 */
+            background: #1e1e1e; 
+            border-radius: 12px; /* 統一圓角 */
+            overflow: hidden;
+            /* 深色背景陰影 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            transition: all 0.2s ease; /* 統一動畫速度 */
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 3px solid transparent; /* 預設透明邊框 */
+            position: relative; /* 關鍵：讓內容可以絕對定位在上面 */
+        }
+        
+        /* 選取後的青藍色發光邊框 (守望者風格) */
+        .card.selected {
+            border-color: #00bcd4; 
+            transform: translateY(-5px);
+            /* 強烈的霓虹發光效果 */
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.6), 0 0 25px rgba(0, 188, 212, 0.4);
+        }
+
+        /* 選取後的勾選圖示 */
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #00bcd4; 
+            color: #121212; /* 深色勾選符號 */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .card img {
+            width: 100%;
+            height: 252px; /* 統一圖片高度 */
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* === 關鍵修改：名字覆蓋在圖片上 === */
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            /* 深色漸層背景，確保文字清晰 */
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.95)); 
+            padding: 15px 0 8px 0; /* 調整內距 */
+            text-align: center;
+            pointer-events: none; /* 讓點擊事件穿透到卡片上 */
+        }
+
+        .card-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin: 0; 
+            /* 文字改為淺色 */
+            color: #ffffff; 
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,1); /* 文字陰影 */
+        }
+
+        /* === 統一的全透明 FooterBar 樣式 === */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            /* 全透明背景 */
+            background: rgba(30, 30, 30, 0); 
+            padding: 20px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0);
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+            /* 關鍵：讓透明層本身不阻擋點擊 */
+            pointer-events: none; 
+        }
+
+        .confirm-btn {
+            /* 恢復按鈕點擊功能 */
+            pointer-events: auto; 
+            /* 守望者青藍色風格 */
+            background-color: #00bcd4;
+            color: #121212; /* 深色文字 */
+            border: none;
+            padding: 12px 80px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .confirm-btn:hover { 
+            background-color: #ffffff; /* 懸停時變白色 */
+            color: #00bcd4;
+            transform: scale(1.05); 
+            box-shadow: 0 6px 20px rgba(0, 188, 212, 0.6);
+        }
+        
+        .confirm-btn:disabled { 
+            /* 禁用狀態改為深灰色 */
+            background-color: #333; 
+            color: #777;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+        
+        /* === 樣式修改結束 === */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>守望者小隊 - 組合帳號查詢</h1>
+    <div class="grid" id="product-list"></div>
+</div>
+
+<div class="footer-bar">
+    <button class="confirm-btn" id="confirm-btn">返回選陣營</button>
+</div>
+
+<script>
+    // 角色清單與代碼
+    var gameItems = [
+        { name: '伊迪絲', code: 'ST01' }, { name: '克拉奇', code: 'ST02' }, { name: '卡麗絲塔', code: 'ST03' }, 
+        { name: '哪吒', code: 'ST04' }, { name: '塔琳', code: 'ST05' }, { name: '奧利斯泰', code: 'ST06' },
+        { name: '孫悟空', code: 'ST07' }, { name: '尤糯米雅', code: 'ST08' }, { name: '康斯坦絲', code: 'ST09' }, 
+        { name: '德雷琳', code: 'ST10' }, { name: '極心', code: 'ST11' }, { name: '盧修斯', code: 'ST12' },
+        { name: '艾洛拉', code: 'ST13' }, { name: '艾爾莉絲', code: 'ST14' }, { name: '艾瑞斯', code: 'ST15' }, 
+        { name: '英格麗德', code: 'ST16' }, { name: '貂蟬', code: 'ST17' }, { name: '關羽', code: 'ST18' },
+        { name: '雅', code: 'ST19' }, { name: '雷古拉斯', code: 'ST20' }
+    ];
+
+    var listElement = document.getElementById('product-list');
+    var confirmBtn = document.getElementById('confirm-btn');
+
+    // 跨頁面同步選取清單
+    var selectedRoles = new Set(JSON.parse(localStorage.getItem('selectedRoles') || '[]'));
+
+    function updateButton() {
+        const count = selectedRoles.size;
+        confirmBtn.innerText = count > 0 ? `確認並返回 (${count})` : '返回選陣營';
+        localStorage.setItem('selectedRoles', JSON.stringify(Array.from(selectedRoles)));
+    }
+
+    gameItems.forEach(function(item) {
+        // 副檔名改為你實際使用的格式 (.jpg 或 .png)
+        var imageUrl = 'image/smallteam/' + item.name + '.jpg'; 
+        
+        var div = document.createElement('div');
+        div.className = 'card';
+        
+        // 初始化選取狀態
+        if (selectedRoles.has(item.code)) {
+            div.classList.add('selected');
+        }
+
+        // === 關鍵修改：將名字 HTML 結構放入圖片上方 ===
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/172x252?text=No+Img'">
+            <div class="card-content">
+                <div class="card-title">${item.name}</div>
+            </div>
+        `;
+        
+        div.onclick = function() {
+            if (selectedRoles.has(item.code)) {
+                selectedRoles.delete(item.code);
+                div.classList.remove('selected');
+            } else {
+                selectedRoles.add(item.code);
+                div.classList.add('selected');
+            }
+            updateButton();
+        };
+        
+        listElement.appendChild(div);
+    });
+
+    updateButton();
+
+    confirmBtn.onclick = function() {
+        // 點擊後回到首頁
+        window.location.href = 'index.html';
+    };
+</script>
+
+</body>
+</html>

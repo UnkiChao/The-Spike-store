@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>組合查詢結果</title>
+    <style>
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            background-color: #0d1117; 
+            color: #c9d1d9; 
+            margin: 0; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 20px auto; }
+        
+        h1 { text-align: center; color: #58a6ff; margin-bottom: 30px; }
+
+        /* 頂部篩選資訊 */
+        .search-summary {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .search-summary span { color: #58a6ff; font-weight: bold; }
+
+        /* 結果卡片 */
+        .result-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: 0.2s;
+        }
+        .result-card:hover { border-color: #58a6ff; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .acc-info h2 { margin: 0; font-size: 18px; color: #ffffff; font-family: monospace; }
+        .match-count { font-size: 12px; color: #3fb950; margin-top: 4px; font-weight: bold; }
+
+        /* 價格與按鈕區 */
+        .action-zone { text-align: right; min-width: 120px; }
+        .price { font-size: 24px; color: #f2994a; font-weight: bold; display: block; }
+        
+        /* 複製按鈕 */
+        .copy-btn {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.2s;
+        }
+        .copy-btn:hover { background: #30363d; color: #ffffff; }
+
+        /* 角色標籤 */
+        .role-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 15px 0; }
+        .tag { 
+            padding: 3px 10px; 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 4px; 
+            font-size: 13px; 
+            color: #8b949e; 
+        }
+        /* 命中的角色顏色：青藍色 */
+        .tag.hit { 
+            background: rgba(56, 189, 248, 0.15); 
+            border-color: #38bdf8; 
+            color: #38bdf8; 
+            font-weight: bold;
+        }
+
+        /* 前往賣場按鈕 */
+        .btn-link {
+            display: block;
+            background: #238636;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-link:hover { background: #2ea043; }
+
+        .no-result { text-align: center; padding: 60px 20px; color: #8b949e; }
+        .back-link { text-align: center; margin-top: 30px; }
+        .back-link a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>查詢結果</h1>
+
+    <div class="search-summary" id="search-summary">
+        正在分析您的需求...
+    </div>
+
+    <div id="results-list">
+        </div>
+
+    <div class="back-link">
+        <a href="index.html">← 返回重新選擇角色</a>
+    </div>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+    // 1. 取得網址參數中的標籤
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedTags = urlParams.get('tags') ? urlParams.get('tags').split(',') : [];
+    
+    const listElement = document.getElementById('results-list');
+    const summaryElement = document.getElementById('search-summary');
+
+    // 2. 角色名稱轉換 (防止 data.js 沒設定時出錯)
+    function getRoleName(code) {
+        return (typeof roleMap !== 'undefined' && roleMap[code]) ? roleMap[code] : code;
+    }
+
+    if (selectedTags.length === 0) {
+        summaryElement.innerHTML = "尚未選取任何角色。";
+        listElement.innerHTML = '<div class="no-result">請先返回首頁選擇您想要的角色。</div>';
+    } else {
+        // 更新頂部資訊
+        summaryElement.innerHTML = `已選角色：<span>${selectedTags.map(t => getRoleName(t)).join(', ')}</span>`;
+
+        // 3. 過濾資料：帳號 ID 必須包含所有選中的標籤 (AND 邏輯)
+        let filtered = accountDatabase.filter(acc => {
+            return selectedTags.every(tag => acc.id.includes(tag));
+        });
+
+        // 4. 排序：如果還有其他角色命中，命中數多的排前面 (這裡是用來處理未來可能的擴充)
+        filtered.sort((a, b) => b.roles.length - a.roles.length);
+
+        // 5. 渲染顯示
+        if (filtered.length === 0) {
+            listElement.innerHTML = '<div class="no-result">找不到包含此組合的帳號，請嘗試減少選取角色。</div>';
+        } else {
+            listElement.innerHTML = ''; 
+            filtered.forEach(acc => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                // 產生角色標籤 HTML
+                const tagsHTML = acc.roles.map(rCode => {
+                    const isHit = selectedTags.includes(rCode) ? 'hit' : '';
+                    return `<span class="tag ${isHit}">${getRoleName(rCode)}</span>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="acc-info">
+                            <h2>ID: ${acc.id}</h2>
+                        </div>
+                        <div class="action-zone">
+                            <span class="price">$${acc.price}</span>
+                            <button class="copy-btn" onclick="copyText('${acc.id}', this)">複製 ID</button>
+                        </div>
+                    </div>
+                    
+                    <div class="role-tags">${tagsHTML}</div>
+                    
+                    <a href="${acc.link}" target="_blank" class="btn-link">前往賣場</a>
+                `;
+                listElement.appendChild(card);
+            });
+        }
+    }
+
+    // 監聽鍵盤按鍵事件
+document.addEventListener('keydown', function(e) {
+    // 判斷按下的是 \ 鍵 (Backslash)
+    if (e.key === '\\') {
+        
+        // 1. 從網址取得選中的角色代碼 (例如 ?tags=ST12,ST20)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tagsParam = urlParams.get('tags'); 
+        
+        if (!tagsParam) {
+            console.log("未選取角色，取消生成。");
+            return;
+        }
+
+        const tagsArray = tagsParam.split(','); // 轉成陣列 ["ST12", "ST20"]
+        const generatedID = tagsArray.join(''); // 拼湊成 ID 字串 "ST12ST20"
+
+        // 2. 建立符合你要求的物件格式 (使用模板字串)
+        // JSON.stringify(tagsArray) 會自動幫你加上 ["", ""] 格式
+        const finalCode = `{ 
+        id: "${generatedID}", 
+        name: "",
+        roles: ${JSON.stringify(tagsArray)},
+        price: "", 
+        link: "https://google.com" 
+    },\n    `;
+
+        // 3. 執行複製到剪貼簿
+        navigator.clipboard.writeText(finalCode).then(() => {
+            // 在控制台或用一個小提示告知已成功
+            console.log("帳號物件已複製到剪貼簿！");
+            
+            // 選擇性：如果你想要視覺反饋，可以用 alert，或是在網頁角落顯示一個暫時的小文字
+            const toast = document.createElement('div');
+            toast.innerText = "已複製帳號物件格式！";
+            toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#238636; color:white; padding:10px 20px; border-radius:5px; z-index:9999;";
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 2000);
+        }).catch(err => {
+            alert("複製失敗，請檢查瀏覽器權限");
+        });
+    }
+});
+</script>
+
+</body>
+</html>

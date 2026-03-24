@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貫星之箭 - 組合帳號查詢</title>
+    <style>
+        /* 採用深綠與翡翠金配色 */
+        body { font-family: Arial, sans-serif; background-color: #0a1410; margin: 0; padding: 20px; padding-bottom: 120px; color: #fff; }
+        .container { max-width: 1200px; margin: auto; }
+        h1 { text-align: center; color: #4ade80; margin-bottom: 30px; text-shadow: 0 0 15px rgba(74, 222, 128, 0.5); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 172px);
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .card {
+            background: #14211a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 3px solid #24382d;
+            position: relative;
+        }
+
+        /* 選取狀態：翡翠綠發光邊框 */
+        .card.selected {
+            border-color: #4ade80;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+        }
+
+        /* 勾選圖示 */
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #4ade80;
+            color: #0a1410;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .card img {
+            width: 100%;
+            height: 252px;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(10, 20, 16, 0.95)); 
+            padding: 15px 0 8px 0;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .card-title { 
+            font-size: 15px; 
+            font-weight: bold; 
+            margin: 0; 
+            color: #d1fae5;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 統一的全透明 FooterBar */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(30, 30, 30, 0); 
+            padding: 20px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0);
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: none; /* 透明層不擋住下方卡片點擊 */
+        }
+
+        .confirm-btn {
+            pointer-events: auto; /* 恢復按鈕點擊功能 */
+            background-color: #4ade80;
+            color: #064e3b;
+            border: none;
+            padding: 12px 80px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .confirm-btn:hover { background-color: #22c55e; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>貫星之箭 - 組合帳號查詢</h1>
+    <div class="grid" id="product-list"></div>
+</div>
+
+<div class="footer-bar">
+    <button class="confirm-btn" id="confirm-btn">返回選陣營</button>
+</div>
+
+<script>
+    var gameItems = [
+        { name: '丹赫辛', code: 'SA01' }, { name: '卡利普索', code: 'SA02' }, { name: '尼克斯', code: 'SA03' }, { name: '弗恩', code: 'SA04' }, { name: '伊歐沃', code: 'SA05' },
+        { name: '米娜', code: 'SA06' }, { name: '艾洛拉', code: 'SA07' }, { name: '西拉斯', code: 'SA08' }, { name: '努美拉', code: 'SA09' }, { name: '希瑟拉', code: 'SA10' },
+        { name: '亞歷珊卓夫人', code: 'SA11' }, { name: '佩拉吉奧斯', code: 'SA12' }, { name: '阿拉夏', code: 'SA13' }, { name: '埃普薩', code: 'SA14' }, { name: '凱', code: 'SA15' },
+        { name: '塔琳', code: 'SA16' }, { name: '塔露拉', code: 'SA17' }, { name: '楊戩', code: 'SA18' }, { name: '瑞扎戈', code: 'SA19' }, { name: '赫克斯', code: 'SA20' },
+        { name: '德古拉', code: 'SA21' }, { name: '魯恩霍洛', code: 'SA22' }, { name: '優璃', code: 'SA23' }, { name: '薩迦克', code: 'SA24' }
+    ];
+
+    var listElement = document.getElementById('product-list');
+    var confirmBtn = document.getElementById('confirm-btn');
+
+    // 從本地存儲讀取已選取名單
+    var selectedRoles = new Set(JSON.parse(localStorage.getItem('selectedRoles') || '[]'));
+
+    function updateButton() {
+        const count = selectedRoles.size;
+        confirmBtn.innerText = count > 0 ? `確認並返回 (${count})` : '返回選陣營';
+        localStorage.setItem('selectedRoles', JSON.stringify(Array.from(selectedRoles)));
+    }
+
+    gameItems.forEach(function(item) {
+        var imageUrl = 'image/stararrow/' + item.name + '.png';
+        
+        var div = document.createElement('div');
+        div.className = 'card';
+        
+        if (selectedRoles.has(item.code)) {
+            div.classList.add('selected');
+        }
+
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/172x252?text=No+Img'">
+            <div class="card-content">
+                <div class="card-title">${item.name}</div>
+            </div>
+        `;
+        
+        div.onclick = function() {
+            if (selectedRoles.has(item.code)) {
+                selectedRoles.delete(item.code);
+                div.classList.remove('selected');
+            } else {
+                selectedRoles.add(item.code);
+                div.classList.add('selected');
+            }
+            updateButton();
+        };
+        
+        listElement.appendChild(div);
+    });
+
+    // 初始化按鈕文字
+    updateButton();
+
+    confirmBtn.onclick = function() {
+        window.location.href = 'index.html';
+    };
+</script>
+
+</body>
+</html>

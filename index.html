@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帳號組合查詢系統 - 陣營選擇</title>
+    <style>
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            background-color: #0d1117; 
+            color: #c9d1d9; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        h1 { 
+            margin-top: 50px; 
+            color: #ffffff; 
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+        }
+
+        /* 狀態看板樣式 */
+        .status-panel {
+            background: rgba(22, 27, 34, 0.8);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .selected-count { color: #58a6ff; font-weight: bold; font-size: 1.2em; }
+
+        .btn-group { margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-search { background-color: #238636; color: white; }
+        .btn-search:hover { background-color: #2ea043; }
+        .btn-search:disabled { background-color: #21262d; color: #484f58; cursor: not-allowed; }
+
+        .btn-clear { background-color: #da3633; color: white; }
+        .btn-clear:hover { background-color: #f85149; }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .faction-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .faction-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #ecf0f1;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .faction-card:hover {
+            transform: translateY(-8px);
+            background-color: #21262d;
+            border-color: #58a6ff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .icon-box { width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; }
+        .icon-box img { width: 100%; height: 100%; object-fit: contain; }
+        .faction-name { font-size: 16px; font-weight: bold; }
+
+        @media (max-width: 800px) {
+            .faction-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>選擇陣營查詢組合</h1>
+
+    <div class="status-panel">
+        <div>目前已選擇 <span id="total-count" class="selected-count">0</span> 個角色</div>
+        <div class="btn-group">
+            <button id="main-search-btn" class="btn btn-search" disabled onclick="goToSearch()">直接搜尋結果</button>
+            <button class="btn btn-clear" onclick="clearAllSelections()">清除所有選擇</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="faction-grid">
+            <a href="nightmare.html" class="faction-card">
+                <div class="icon-box"><img src="image/nightmare.png" alt="噩夢"></div>
+                <div class="faction-name">惡夢議會</div>
+            </a>
+            <a href="nkingseat.html" class="faction-card">
+                <div class="icon-box"><img src="image/nkingseat.png" alt="北境王座"></div>
+                <div class="faction-name">北境王座</div>
+            </a>
+            <a href="chaos.html" class="faction-card">
+                <div class="icon-box"><img src="image/chaos.png" alt="混沌征服者"></div>
+                <div class="faction-name">混沌征服者</div>
+            </a>
+            <a href="secretmethod.html" class="faction-card">
+                <div class="icon-box"><img src="image/secretmethod.png" alt="秘法會"></div>
+                <div class="faction-name">秘法會</div>
+            </a>
+            <a href="highjudge.html" class="faction-card">
+                <div class="icon-box"><img src="image/highjudge.png" alt="至高仲裁者"></div>
+                <div class="faction-name">至高仲裁者</div>
+            </a>
+            <a href="cursereligion.html" class="faction-card">
+                <div class="icon-box"><img src="image/cursereligion.png" alt="詛咒神教"></div>
+                <div class="faction-name">詛咒神教</div>
+            </a>
+            <a href="stararrow.html" class="faction-card">
+                <div class="icon-box"><img src="image/stararrow.png" alt="貫星之箭"></div>
+                <div class="faction-name">貫星之箭</div>
+            </a>
+            <a href="hellexplode.html" class="faction-card">
+                <div class="icon-box"><img src="image/hellexplode.png" alt="煉獄爆破"></div>
+                <div class="faction-name">煉獄爆破</div>
+            </a>
+            <a href="smallteam.html" class="faction-card">
+                <div class="icon-box"><img src="image/smallteam.png" alt="看守者"></div>
+                <div class="faction-name">守望者小隊</div>
+            </a>
+            <a href="noname.html" class="faction-card">
+                <div class="icon-box"><img src="image/noname.png" alt="無名者"></div>
+                <div class="faction-name">不可名者</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 讀取 localStorage 裡的資料
+        function updateStatus() {
+            const selected = JSON.parse(localStorage.getItem('selectedRoles') || '[]');
+            const count = selected.length;
+            document.getElementById('total-count').innerText = count;
+            document.getElementById('main-search-btn').disabled = count === 0;
+        }
+
+        function clearAllSelections() {
+            if(confirm('確定要清除所有陣營的選擇嗎？')) {
+                localStorage.removeItem('selectedRoles');
+                updateStatus();
+            }
+        }
+
+        function goToSearch() {
+            const selected = JSON.parse(localStorage.getItem('selectedRoles') || '[]');
+            if (selected.length > 0) {
+                window.location.href = 'search_results.html?tags=' + selected.join(',');
+            }
+        }
+
+        // 初始化頁面狀態
+        window.onload = updateStatus;
+    </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不可名者 - 組合帳號查詢</title>
+    <style>
+        /* 延用深色主題，並將發光顏色改為紫色 */
+        body { font-family: Arial, sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; padding-bottom: 120px; color: #fff; }
+        .container { max-width: 1200px; margin: auto; }
+        h1 { text-align: center; color: #a066ff; margin-bottom: 30px; text-shadow: 0 0 10px rgba(160,102,255,0.5); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 172px);
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .card {
+            background: #2a2a2a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 3px solid transparent;
+            position: relative;
+        }
+
+        /* 選取狀態：紫色發光邊框 */
+        .card.selected {
+            border-color: #a066ff;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(160,102,255,0.4);
+        }
+
+        /* 勾選圖示 */
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #a066ff;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .card img {
+            width: 100%;
+            height: 252px;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9)); 
+            padding: 15px 0 8px 0;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .card-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin: 0; 
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 統一的全透明 FooterBar */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(30, 30, 30, 0); 
+            padding: 20px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0);
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: none; /* 透明區域不擋點擊 */
+        }
+
+        .confirm-btn {
+            pointer-events: auto; /* 恢復按鈕點擊 */
+            background-color: #a066ff;
+            color: white;
+            border: none;
+            padding: 12px 80px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(160,102,255,0.3);
+        }
+
+        .confirm-btn:hover { background-color: #8a4dff; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>不可名者 - 組合帳號查詢</h1>
+    <div class="grid" id="product-list"></div>
+</div>
+
+<div class="footer-bar">
+    <button class="confirm-btn" id="confirm-btn">返回選陣營</button>
+</div>
+
+<script>
+    // 角色名單
+    var gameItems = [
+        { name: '伊米萊特', code: 'NN01' },
+        { name: '阿賈克斯', code: 'NN02' }
+    ];
+
+    var listElement = document.getElementById('product-list');
+    var confirmBtn = document.getElementById('confirm-btn');
+
+    // 跨頁面同步選取清單
+    var selectedRoles = new Set(JSON.parse(localStorage.getItem('selectedRoles') || '[]'));
+
+    function updateButton() {
+        const count = selectedRoles.size;
+        confirmBtn.innerText = count > 0 ? `確認並返回 (${count})` : '返回選陣營';
+        localStorage.setItem('selectedRoles', JSON.stringify(Array.from(selectedRoles)));
+    }
+
+    gameItems.forEach(function(item) {
+        var imageUrl = 'image/noname/' + item.name + '.png';
+        var div = document.createElement('div');
+        div.className = 'card';
+        
+        if (selectedRoles.has(item.code)) {
+            div.classList.add('selected');
+        }
+
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/172x252?text=No+Img'">
+            <div class="card-content">
+                <div class="card-title">${item.name}</div>
+            </div>
+        `;
+        
+        div.onclick = function() {
+            if (selectedRoles.has(item.code)) {
+                selectedRoles.delete(item.code);
+                div.classList.remove('selected');
+            } else {
+                selectedRoles.add(item.code);
+                div.classList.add('selected');
+            }
+            updateButton();
+        };
+        
+        listElement.appendChild(div);
+    });
+
+    updateButton();
+
+    confirmBtn.onclick = function() {
+        window.location.href = 'index.html';
+    };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>詛咒神教 - 組合帳號查詢</title>
+    <style>
+        /* 採用深紫與幽冥綠配色 */
+        body { font-family: Arial, sans-serif; background-color: #0f0a14; margin: 0; padding: 20px; padding-bottom: 120px; color: #fff; }
+        .container { max-width: 1200px; margin: auto; }
+        h1 { text-align: center; color: #a855f7; margin-bottom: 30px; text-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 172px);
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .card {
+            background: #1a1421;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 3px solid #2d2438;
+            position: relative;
+        }
+
+        /* 選取狀態：幽冥綠發光邊框 */
+        .card.selected {
+            border-color: #22c55e;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+
+        /* 勾選圖示 */
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #22c55e;
+            color: #0f0a14;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .card img {
+            width: 100%;
+            height: 252px;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(15, 10, 20, 0.95)); 
+            padding: 15px 0 8px 0;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .card-title { 
+            font-size: 15px; 
+            font-weight: bold; 
+            margin: 0; 
+            color: #d8b4fe;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 統一的全透明 FooterBar */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(30, 30, 30, 0); 
+            padding: 20px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0);
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: none; /* 透明區域不擋點擊 */
+        }
+
+        .confirm-btn {
+            pointer-events: auto; /* 恢復按鈕點擊 */
+            background-color: #a855f7;
+            color: white;
+            border: none;
+            padding: 12px 80px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .confirm-btn:hover { background-color: #9333ea; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>詛咒神教 - 組合帳號查詢</h1>
+    <div class="grid" id="product-list"></div>
+</div>
+
+<div class="footer-bar">
+    <button class="confirm-btn" id="confirm-btn">返回選陣營</button>
+</div>
+
+<script>
+    var gameItems = [
+        { name: '扎里絲', code: 'CR01' }, { name: '卡赫利安', code: 'CR02' }, { name: '弗拉德三世', code: 'CR03' }, { name: '皮埃爾', code: 'CR04' }, { name: '克莉亞', code: 'CR05' },
+        { name: '克爾柏洛斯', code: 'CR06' }, { name: '別西卜', code: 'CR07' }, { name: '杜爾伽', code: 'CR08' }, { name: '里弗船長', code: 'CR09' }, { name: '亞洛特', code: 'CR10' },
+        { name: '阿緹密斯', code: 'CR11' }, { name: '阿諾菈', code: 'CR12' }, { name: '柯羅莎', code: 'CR13' }, { name: '埃薩雷斯', code: 'CR14' }, { name: '烏瑞丁', code: 'CR15' },
+        { name: '馬爾蔚拉', code: 'CR16' }, { name: '勒席爾', code: 'CR17' }, { name: '達麗亞', code: 'CR18' }, { name: '瑪格達', code: 'CR19' }, { name: '碧雅翠絲', code: 'CR20' },
+        { name: '維爾娜', code: 'CR21' }, { name: '摩莉甘', code: 'CR22' }, { name: '澤魯斯', code: 'CR23' }, { name: '薇莉絲', code: 'CR24' }, { name: '黛米', code: 'CR25' },
+        { name: '羅莎莉婭', code: 'CR26' }
+    ];
+
+    var listElement = document.getElementById('product-list');
+    var confirmBtn = document.getElementById('confirm-btn');
+
+    // 跨陣營同步資料
+    var selectedRoles = new Set(JSON.parse(localStorage.getItem('selectedRoles') || '[]'));
+
+    function updateButton() {
+        const count = selectedRoles.size;
+        confirmBtn.innerText = count > 0 ? `確認並返回 (${count})` : '返回選陣營';
+        localStorage.setItem('selectedRoles', JSON.stringify(Array.from(selectedRoles)));
+    }
+
+    gameItems.forEach(function(item) {
+        var imageUrl = 'image/cursereligion/' + item.name + '.png';
+        var div = document.createElement('div');
+        div.className = 'card';
+        
+        if (selectedRoles.has(item.code)) {
+            div.classList.add('selected');
+        }
+
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/172x252?text=No+Img'">
+            <div class="card-content">
+                <div class="card-title">${item.name}</div>
+            </div>
+        `;
+        
+        div.onclick = function() {
+            if (selectedRoles.has(item.code)) {
+                selectedRoles.delete(item.code);
+                div.classList.remove('selected');
+            } else {
+                selectedRoles.add(item.code);
+                div.classList.add('selected');
+            }
+            updateButton();
+        };
+        
+        listElement.appendChild(div);
+    });
+
+    updateButton();
+
+    confirmBtn.onclick = function() {
+        window.location.href = 'index.html';
+    };
+</script>
+
+</body>
+</html>
