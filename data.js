@@ -1,6 +1,13 @@
 // 帳號清單 (之後要增刪帳號改這裡就好)
 const accountDatabase = [
-    
+   { 
+    id: "HJ01SM03SA19", 
+    name: "",
+    roles: ["HJ01","SM03","SA19"],
+    price: "", 
+    link: "https://google.com" 
+},
+ 
 ];
 
 const roleMap = {
