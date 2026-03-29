@@ -5,7 +5,7 @@ const accountDatabase = [
     name: "",
     roles: ["HJ01","SM03","SA19"],
     price: "", 
-    link: "https://google.com" 
+    link: "https://www.8591.com.tw/v3/mall/detail/2417505549" 
 },
  
 ];
